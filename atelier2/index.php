@@ -1,10 +1,18 @@
 <?php
 session_start();
 
-// Si l'utilisateur a déjà un cookie valide, on le renvoie direct vers page_admin.php
-if (isset($_COOKIE['authToken']) && $_COOKIE['authToken'] === '12345') {
-    header('Location: page_admin.php');
-    exit();
+// Si déjà connecté avec un cookie valide → redirection automatique
+if (
+    isset($_COOKIE['authToken'], $_SESSION['authToken'], $_SESSION['role']) &&
+    $_COOKIE['authToken'] === $_SESSION['authToken']
+) {
+    if ($_SESSION['role'] === 'admin') {
+        header('Location: page_admin.php');
+        exit();
+    } elseif ($_SESSION['role'] === 'user') {
+        header('Location: page_user.php');
+        exit();
+    }
 }
 
 // Soumission du formulaire
@@ -12,26 +20,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = $_POST['username'] ?? '';
     $password = $_POST['password'] ?? '';
 
-    // Login/mot de passe corrects ?
+    // Vérification admin / secret → page_admin.php
     if ($username === 'admin' && $password === 'secret') {
-        // Cookie valable 60 secondes
-        setcookie('authToken', '12345', time() + 60, '/', '', false, true); // 60 secondes
+        // Exo 2 : token unique
+        $token = bin2hex(random_bytes(16));
+
+        // On mémorise dans la session
+        $_SESSION['authToken'] = $token;
+        $_SESSION['role'] = 'admin';
+
+        // Exo 1 : cookie valable 60 secondes
+        setcookie('authToken', $token, time() + 60, '/', '', false, true);
+
         header('Location: page_admin.php');
         exit();
-    } else {
-        $error = "Nom d'utilisateur ou mot de passe incorrect.";
     }
+
+    // Vérification user / utilisateur → page_user.php (Exo 3)
+    if ($username === 'user' && $password === 'utilisateur') {
+        $token = bin2hex(random_bytes(16));
+
+        $_SESSION['authToken'] = $token;
+        $_SESSION['role'] = 'user';
+
+        setcookie('authToken', $token, time() + 60, '/', '', false, true);
+
+        header('Location: page_user.php');
+        exit();
+    }
+
+    // Sinon : identifiants incorrects
+    $error = "Nom d'utilisateur ou mot de passe incorrect.";
 }
 ?>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Connexion</title>
+    <title>Connexion - Atelier 2</title>
 </head>
 <body>
-    <h1>Atelier authentification par Cookie</h1>
-    <h3>La page <a href="page_admin.php">page_admin.php</a> est inaccessible tant que vous ne vous serez pas connecté avec le login 'admin' et mot de passe 'secret'</h3>
+    <h1>Atelier 2 : Authentification par Cookie</h1>
+    <h3>La page admin est accessible avec <code>admin / secret</code></h3>
+    <h3>La page user est accessible avec <code>user / utilisateur</code></h3>
 
     <?php if (!empty($error)): ?>
         <p style="color:red;"><?= htmlspecialchars($error) ?></p>
@@ -41,9 +72,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <label for="username">Nom d'utilisateur :</label>
         <input type="text" id="username" name="username" required>
         <br><br>
+
         <label for="password">Mot de passe :</label>
         <input type="password" id="password" name="password" required>
         <br><br>
+
         <button type="submit">Se connecter</button>
     </form>
 
