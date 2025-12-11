@@ -1,24 +1,23 @@
 <?php
-// Démarrer la session
 session_start();
 
-// Vérifier si l'utilisateur s'est bienconnecté
-if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
-    header('Location: index.php'); // Dans le cas contraire, l'utilisateur sera redirigé vers la page de connexion
+// Autorisé uniquement si role = admin
+if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
+    header('Location: index.php');
     exit();
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Page protégée</title>
+    <title>Page ADMIN - Atelier 3</title>
 </head>
 <body>
-    <h1>Bienvenue sur la page administrateur de l'atelier 3</h1>
-    <p>Vous êtes connecté en tant que : <?php echo htmlspecialchars($_SESSION['username']); ?></p>
-    <a href="logout.php">Se déconnecter</a>
+    <h1>Page ADMIN (Atelier 3)</h1>
+    <p>Bienvenue <strong>admin</strong>. Vous êtes authentifié via une <strong>session</strong> côté serveur.</p>
+
+    <p><a href="index.php">Retour à l'accueil de l'atelier 3</a></p>
+    <p><a href="logout.php">Se déconnecter</a></p>
 </body>
 </html>
