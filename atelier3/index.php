@@ -1,52 +1,81 @@
 <?php
-// Démarre la session
 session_start();
 
-// Vérifier si l'utilisateur est déjà connecté
-if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
-    header('Location: page_admin.php'); // Si l'utilisateur s'est déjà connecté alors il sera automatiquement redirigé vers la page protected.php
-    exit();
+/*
+ * EXO 2 : Compteur de visites de la page d'accueil
+ * On incrémente uniquement sur les requêtes GET
+ */
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    if (!isset($_SESSION['visits'])) {
+        $_SESSION['visits'] = 0;
+    }
+    $_SESSION['visits']++;
 }
 
-// Gérer le formulaire de connexion
+/*
+ * EXO 1 : Authentification par SESSION
+ *  admin / secret      -> page_admin.php
+ *  user / utilisateur  -> page_user.php
+ */
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = $_POST['username'];
-    $password = $_POST['password'];
+    $username = $_POST['username'] ?? '';
+    $password = $_POST['password'] ?? '';
 
-    // Vérification simple des identifiants (à améliorer avec une base de données)
+    // admin / secret
     if ($username === 'admin' && $password === 'secret') {
-        // Stocker les informations utilisateur dans la session
-        $_SESSION['loggedin'] = true;
-        $_SESSION['username'] = $username;
-
-        // Rediriger vers la page protégée
+        $_SESSION['role'] = 'admin';
+        $_SESSION['username'] = 'admin';
         header('Location: page_admin.php');
         exit();
-    } else {
-        $error = "Nom d'utilisateur ou mot de passe incorrect.";
     }
+
+    // user / utilisateur
+    if ($username === 'user' && $password === 'utilisateur') {
+        $_SESSION['role'] = 'user';
+        $_SESSION['username'] = 'user';
+        header('Location: page_user.php');
+        exit();
+    }
+
+    $error = "Nom d'utilisateur ou mot de passe incorrect.";
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Connexion</title>
+    <title>Atelier 3 - Authentification par Session</title>
 </head>
 <body>
-    <h1>Atelier authentification par Session</h1>
-    <h3>La page <a href="page_admin.php">page_admin.php</a> de cet atelier 3 est inaccéssible tant que vous ne vous serez pas connecté avec le login 'admin' et mot de passe 'secret'</h3>
+    <h1>Atelier 3 : Authentification par Session</h1>
+
+    <p>
+        <?php
+        $visits = $_SESSION['visits'] ?? 0;
+        echo "Vous avez visité cette page d'accueil <strong>{$visits}</strong> fois.";
+        ?>
+    </p>
+
+    <hr>
+
+    <?php if (!empty($error)): ?>
+        <p style="color:red;"><?= htmlspecialchars($error) ?></p>
+    <?php endif; ?>
+
     <form method="POST" action="">
         <label for="username">Nom d'utilisateur :</label>
         <input type="text" id="username" name="username" required>
         <br><br>
+
         <label for="password">Mot de passe :</label>
         <input type="password" id="password" name="password" required>
         <br><br>
+
         <button type="submit">Se connecter</button>
     </form>
+
     <br>
-    <a href="../index.html">Retour à l'accueil</a>  
+    <a href="../index.html">Retour à l'accueil général</a>
 </body>
 </html>
