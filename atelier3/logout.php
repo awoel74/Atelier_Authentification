@@ -1,12 +1,11 @@
 <?php
-// Démarrer la session
 session_start();
 
-// Détruire la session
+// On vide la session
+$_SESSION = [];
 session_unset();
 session_destroy();
 
-// Rediriger vers la page de connexion
+// Retour à l'accueil de l'atelier 3
 header('Location: index.php');
 exit();
-?>
